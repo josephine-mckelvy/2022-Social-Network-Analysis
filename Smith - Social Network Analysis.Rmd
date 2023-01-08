@@ -1,0 +1,257 @@
+---
+title: "Smith - Social Network Analysis"
+author: "Josephine McKelvy"
+date: "2023-01-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+#########################################
+# Introduction to Network Analysis in R #
+#########################################
+#NETWORK: a set of interactions (edges) between objects (vertices)
+#EDGES: ties, relations, associations, links, connections, flows, etc. from sender to receiver
+#VERTICES: nodes, actors, organizations
+
+#Kinds of Research Questions:
+#how might context, behavioral rules, etc. impact ties (as a property of pairs), group structure (hierarchy, positions, roles), homophily ("birds of a feather stick together"), etc. to predict outcomes, behavior, etc.?
+
+#Data Collection:
+#surveys: nominate X friends
+#interviews: who do you interact with under X conditions?
+
+#Data Structures:
+#ADJACENCY MATRIX: a square matrix where the rows and columns are all possible VERTICES (i.e., nodes, actors, organizations), and each cell's value represents the absence (=0) or presence (=1) of a relationship between the two intersecting nodes; i.e., if a pair of nodes are ADJACENT to one another
+
+#EDGE LIST: set of rows denoting EDGES (i.e., ties, relations, links, connections, flows) from sender to receiver that ignores the absence (=0) of a tie; so isolates who do not send out or receive in a tie are left out of the graph 
+#the first column is the sender of the tie
+#the second column is the receiver of that tie
+
+#NOMINATION LIST: set of rows including the sender, plus one receiver per column
+#each row is the observation collected from a respondent's nominations or list of people they [insert verb] with
+
+#Types of Ties:
+#UNDIRECTED relationships that are bidirectional or reciprocal
+#DIRECTED relationships where DIRECTions matter, because they may not be reciprocal
+#Binary (if a tie exists at all) vs Valued (with varying strength/weakness) vs signed (with positive or negative sentiment)
+```
+#Plot from Adjacency Matrix:
+```{r}
+#1a. create a dataframe object called adj_matrix.df and read in your dataset:
+adj_matrix.df <- read.csv("adjacency_matrix.csv")
+#adjacency matrix: a square matrix where the rows and columns are all possible VERTICES (i.e., nodes, actors, objects), and each cell's value represents the absence (=0) or presence (=1) of a tie between the two intersecting nodes; i.e., if a pair of nodes are ADJACENT to one another 
+
+#1a. turn that *.csv into a matrix:
+adj_matrix.df <- as.matrix(adj_matrix.df) 
+#add rownames to the matrix that mirror the column names:
+rownames(adj_matrix.df)=colnames(adj_matrix.df)
+
+#2. create a dataframe object called attributes.df and read in your attributes table storing the sex, grade, and race of each node (or student) in the network:
+attributes.df <- read.csv("attributes.csv")
+#the first column is the ID of each node, has to be in the same order as the adjacency matrix, and has to match the IDs in the edgelist
+
+#3. create a network object called network_matrix using the graph_from_adjacency_matrix function (in the igraph library), with adj_matrix.df as the adjmatrix: 
+#install.packages("igraph")
+library(igraph) 
+#?graph_from_adjacency_matrix
+network_matrix <- graph_from_adjacency_matrix(adj_matrix.df,
+                                           mode = "directed")
+
+#DIRECTED: the DIRECTion of the tie matters because it may not be reciprocal
+#UNDIRECTED: single, bidirectional ties with no loops
+
+#4. map each of the attributes onto the network_matrix object using the set_vertex_attr function, with network_matrix as the graph, and the column of the attributes.df as the value; repeat for each column or attribute:  
+#?set_vertex_attr
+network_matrix <- set_vertex_attr(network_matrix,"sex", value = attributes.df$sex)
+network_matrix <- set_vertex_attr(network_matrix,"grade", value = attributes.df$grade)
+network_matrix <- set_vertex_attr(network_matrix,"race", value = attributes.df$race)
+#the names of the attributes do not have to match the variable names in the attributes dataframe
+
+#5 Plot
+?plot.igraph
+?igraph.plotting
+
+#color nodes by grade
+V(network_matrix)$color=vertex_attr(graph=network_matrix,"grade")
+#color nodes by sex
+color_gender=ifelse(attributes.df$sex=="Female","pink","blue") 
+V(network_matrix)$color=color_gender 
+
+plot(network_matrix, rescale=TRUE)
+
+#more options
+plot(network_matrix, 
+#    layout = layout_in_circle,              #can remove for default plot
+     vertex.color = color_gender,            #color nodes with ifelse statement based on attribute
+     vertex.label = NA,                      #remove node ID labels
+     vertex.size = colSums(adj_matrix.df),   #resize nodes, based on number of ties received in adjacency matrix
+     vertex.frame.color = NA,                #remove black border of nodes
+     edge.arrow.size = .5,                   #resize arrows along ties
+     edge.arrow.width = .5,
+     edge.color = "light gray",              #color ties
+     edge.curved = .3)                       #curve the ties
+```
+#Plot from Edgelist:
+```{r}
+###########################################################################################
+#1b. optional: create a dataframe object called edgelist.df and read in your dataset:
+edgelist.df <- read.csv("edgelist.csv")
+#edgelist: rows denoting EDGES (i.e., ties, relations, links, connections) from sender to receiver that ignores the absence (=0) of a tie 
+#the first column is the sender of the tie
+#the second column is the receiver of that tie
+#the edgelist is good for large networks but will NOT show if there are isolates that did not receive in nor send out any ties 
+
+#2. create a dataframe object called attributes.df and read in your attributes table storing the sex, grade, and race of each node (or student) in the network:
+attributes.df <- read.csv("attributes.csv")
+#the first column is the ID of each node, has to be in the same order as the adjacency matrix, and has to match the IDs in the edgelist
+
+#3. create a network object called network_edgelist using graph_from_data_frame function (in the igraph library), with edgelist.df as the dataframe, directed is true, with the vertices (or nodes) option, that maps the attributes dataset onto the vertices:
+#install.packages("igraph")
+library(igraph)
+
+#network_edgelist <- graph_from_data_frame(d = edgelist.df, 
+#                                          directed = TRUE, 
+#                                          vertices = attributes.df)
+
+#DIRECTED: the DIRECTion of the tie matters because it may not be reciprocal
+#UNDIRECTED: single, bidirectional ties with no loops
+#igraph will add every variable in the attributes dataframe (except the first column, which is assumed to be the IDs of the nodes) to the created network object. 
+
+#include a dataframe containing a simple ID variable for each node in the network (i.e., from 1 to 24) to include isolates without ties
+network_edgelist <- graph_from_data_frame(d = edgelist.df,
+                                          directed = TRUE,
+                                          vertices = data.frame(id=1:24))
+#4 PLOT
+plot(network_edgelist, 
+    #layout = layout_in_circle,              #can remove for default plot
+     vertex.color = color_gender,            #color nodes with ifelse statement based on attribute
+     vertex.label = NA,                      #remove node ID labels
+     vertex.size = colSums(adj_matrix.df),   #resize nodes, based on number of ties received in adjacency matrix
+     vertex.frame.color = NA,                #remove black border of nodes
+     edge.arrow.size = .5,                   #resize arrows along ties
+     edge.arrow.width = .5,
+     edge.color = "light gray",              #color ties
+     edge.curved = .3)                       #curve the ties
+```
+#Measures:
+```{r}
+#1. DEGREE: the number of edges for each actor;  
+#outdegree: as the number of edges sent from actor i; or sum over the rows of the adj matrix.
+#indegree: the number of edges received by actor i; or sum over the columns of the adj matrix.
+
+outdeg=rowSums(adj_matrix.df) 
+outdeg #We see that the first actor nominated 4 friends, the second actor nominated 2 friends, and so on. 
+
+indeg=colSums(adj_matrix.df)
+indeg #We see that the first actor received 1 nomination, the second actor received no nominations, and so on.
+
+#OR use the degree function:
+outdeg_igraph <- degree(graph=network_matrix, mode="out")
+indeg_igraph <- degree(graph=network_matrix, mode="in")
+
+outdeg==outdeg_igraph #the values of the outdeg object matches the output of the outdeg_igraph
+
+#2. DENSITY: the total number of ties in the network, divided by the total number of ties possible.
+
+#create an object, num_edges, using the function gsize that captures the number of ties in a dataset:
+num_edges <- gsize(network_matrix) 
+num_edges                                  #77 actual ties
+
+#create an object, num_vertices, using the function gorder that captures the number of nodes in a dataset
+num_vertices <- gorder(network_matrix) 
+num_vertices                               #24 nodes
+
+#create an object, num_dyads (excluding ii pairs), which tells us how many ties are possible in the network, 
+#by using the factorial operation, n*(n-1),to count the possible distinct sequences or permutations of paths:
+num_dyads <- num_vertices*(num_vertices-1) #24*23 = 552 possible ties
+
+#create an object, density, which is the ratio of actual ties out of the number of possible ties.
+density <- num_edges/num_dyads             #77 actual ties/552 possible ties = 0.1394928
+density                                   
+
+#OR use the edge_density function in igraph: 
+edge_density(network_matrix)               #0.1394928
+
+#3. WALK: a sequence of nodes and edges (backwards and forwards) that connect i to j, of a given length between i and j; or matrix multiplication. By raising the matrix to the nth power, we get the number of walks of length n between all ij pairs.
+
+#create an object, walks2, that raises the matrix to the power of 2 to get the number of walks of length 2:
+walks2=adj_matrix.df%*%adj_matrix.df
+walks2 
+#This suggests, for example, that there is one walk of length 2 between actor 1 and actor 1 (themself). 
+#In this case, the walk is : 1->7->1. We can see this by looking at the rows for actor 1 and actor 7:
+adj_matrix.df[c(1,7), ] 
+#We can see that actor 1 is friends with 3, 5, 7 and 21. 
+#We can also see that actor 7 is friends with 1, 9, 10 and 16, thus creating a walk of length 2: 1->7->1. 
+
+#We can calculate the number of walks of length 3, 4, etc. in an analogous fashion. For example, for walks of length 3:
+walks3=adj_matrix.df%*%adj_matrix.df%*%adj_matrix.df
+walks3 
+#Here, we see that there are 0 walks of length 3 from 1 to 1, but 4 different walks from 1 to 3 
+#(for example, 1->3->8->3). 
+
+#4. PATH: a sequence of nodes and edges, starting with one node and ending with another, with no repeats/retracing steps
+#5. DISTANCE: the shortest path between nodes in a network. 
+
+#create a matrix object, dist_mat, that holds the lenghts of the shortest path between all pairs of nodes:
+dist_mat=distances(graph=network_matrix, mode="out")
+dist_mat 
+#Note that Inf (or infinity) means that i can not reach j through any path.
+
+#OR use the all_shortest_paths function from actor 1 to actor 6:
+all_shortest_paths(network_matrix, from=1, to=6) 
+
+#compute the mean distance across all pairs in the distance matrix, computed above. 
+#first, replace the diagonals, or distance to oneself (which is by definition, zero), with NA (or not-applicable):
+diag(dist_mat)=NA
+#also, exclude unreachable pairs, which will make the mean Inf:
+mean(dist_mat[dist_mat!=Inf], na.rm=T) 
+#Ignoring the unreachable pairs and diagonals, we see a mean value of 2.81.
+#On average, actors are separated by paths of length 2.81. 
+
+#6. CLOSENESS: the inverse of the distance matrix where there are unreachable pairs. 
+#By inverting the distance matrix, all Infinity values are turned into zeroes and thus can be included in the mean calculation.
+#The values range from 0 (not reachable, so minimum closeness) to 1 (directly connected, so maximum closeness).
+
+#create an object, close_mat, that takes the inverse of the distance matrix object:
+close_mat=1/dist_mat 
+close_mat 
+
+mean(close_mat, na.rm=T) #Here we calculate the mean closeness across all pairs, excluding the NAs on the diagonal. 
+#Ignoring the NAs on the diagonal, we see a mean value of .348. 
+#On average, actors are 1/2.87 paths close to each other. 
+
+#It may also be useful to compute the median for comparison, if there are any outliers skewing the mean: 
+median(dist_mat, na.rm=T)  #for distance
+median(close_mat, na.rm=T) #for closeness
+#In this case, the median yields the same information for mean distance and mean closeness, 
+#that the median distance is 3 and the median closeness is 1/3. 
+
+#7. REACHABILITY: whether actor i can reach actor j through any path. Actor i can reach actor j if the distance between i and j is less than Infinity (i.e., there is some path between i and j). 
+
+#create an object, reach_mat, using an ifelse function to set the reachability matrix to:
+#1 if distance is less than Inf 
+#0 if distance is not less than Inf
+reach_mat=ifelse(dist_mat <Inf, yes=1, no=0) 
+reach_mat #We can see that actor 1 cannot reach actor 2 (for example).
+
+#8. DIAMETER: the longest distance between any two nodes in the network. 
+
+#create an object, diameter, that computes the maximum distance in the distance matrix, 
+#excluding unreachable paths and NAs on the diagonal:
+diameter <- max(dist_mat[dist_mat!=Inf], na.rm=T) 
+
+#OR use the diameter function in igraph:
+diameter(network_matrix)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
