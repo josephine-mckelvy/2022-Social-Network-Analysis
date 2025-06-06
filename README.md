@@ -16,7 +16,7 @@ to store datasets and R code for social network analysis of coauthorships and co
   + igraphs of the sociograms to show strength of ties and diversity of networks
   + cluster graph from multiple correspondence analysis by COVID-19 testing or vaccine uptake (Y-axis) and clinical or community engagement focus (X-axis)
 
-# Data Collection
+# Data Collection & Visualization
 1. Gather citation metadata and other information on scholarly products (e.g., journal articles, conference papers, and grants) from:
   -automated searches of RADx-UP grant numbers (in PubMed, Scopus) 
   -quarterly publications tracking surveys (to RADx-UP project leads)
