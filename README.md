@@ -1,5 +1,5 @@
 # Social Network Analysis
-code from Jeffrey A Smith for analyzing coauthorship networks and topic modeling for publications in the Rapid Acceleration of Diagnostics for Underserved Populations (RADx-UP) initiative to assess academic impact
+code from Jeffrey A. Smith for analyzing coauthorship networks and topic modeling for publications in the Rapid Acceleration of Diagnostics for Underserved Populations (RADx-UP) initiative to assess academic impact
 (graphical ReadMe here: https://miro.com/app/board/uXjVPuznJ_k=/?share_link_id=474547388392)
 
 # Purpose:
