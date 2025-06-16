@@ -18,11 +18,11 @@ to store datasets and R code for social network analysis of coauthorships and co
 
 # Data Collection & Visualization
 1. Gather citation metadata and other information on scholarly products (e.g., journal articles, conference papers, and grants) from:
-  -automated searches of RADx-UP grant numbers (in PubMed, Scopus) 
-  -quarterly publications tracking surveys (to RADx-UP project leads)
-  -n=70 publications
+  + automated searches of RADx-UP grant numbers (in PubMed, Scopus) 
+  + quarterly publications tracking surveys (to RADx-UP project leads)
+  + n=70 publications
 2. Categorize information from publications (e.g., target populations, study settings, study design, analytic methods, results, Translationsal Science benefits) via data entry into a REDCap survey instrument.
-  -2 reviewers independently conduct this content analysis for each publication.
-  -a third arbiter resolves differences between these independent reviews of each publication.
+  + 2 reviewers independently conduct this content analysis for each publication.
+  + a third arbiter resolves differences between these independent reviews of each publication.
 3. Clean datasets for missingness and merge data to generate adjacency matrix, edge list for igraphs.
 4. Visualize social networks of coauthorship and clusters of publication topics.   
